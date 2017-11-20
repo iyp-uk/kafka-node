@@ -16,7 +16,7 @@ producer.on('ready', function() {
       producer.produce(
         KAFKA_TOPIC,
         null,
-        new Buffer(JSON.stringify(req.body))
+        new Buffer(req.body)
       );
     } catch (err) {
       console.error('A problem occurred when sending our message');
