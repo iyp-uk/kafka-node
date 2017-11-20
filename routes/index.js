@@ -12,18 +12,24 @@ producer.connect();
 
 producer.on('ready', function() {
   router.post('/', function (req, res, next) {
+    if (!req.is('application/json')) {
+      var err = new Error('Not acceptable. Please send application/json');
+      err.status = 406;
+      return next(err);
+    }
+
     try {
       producer.produce(
         KAFKA_TOPIC,
         null,
-        new Buffer(req.body)
+        new Buffer(JSON.stringify(req.body))
       );
     } catch (err) {
       console.error('A problem occurred when sending our message');
       console.error(err);
     }
     // Empty response body.
-    res.json(null);
+    res.json();
   })
 });
 
