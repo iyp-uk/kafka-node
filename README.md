@@ -24,8 +24,12 @@ $ docker run -d --name kafka-node -p 3000:3000 miaoulafrite/kafka-node
 
 ## Environment variables
 
-* `KAFKA_BROKERS`: Defaults to `localhost:9092`
-* `KAFKA_TOPIC`: Defaults to `test`
+| Name | Type | Description | Default value |
+|------|------|-------------|---------------|
+|`KAFKA_BROKERS`| String | Comma separated list of kafka brokers | `localhost:9092` |
+|`KAFKA_TOPIC`| String | Kafka topic to produce to | `test` |
+|`POLL_INTERVAL`| Integer | Polling interval in ms to ensure messages have been delivered | `1000` |
+|`CLIENT_ID`| String | Producer client identification | `1000` |
 
 ```console
 $ docker run -d --name kafka-node -p 3000:3000 -e KAFKA_BROKERS=192.168.0.6:9092 miaoulafrite/kafka-node
@@ -63,4 +67,49 @@ $ bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test -
 blah
 sushi
 more
+```
+
+## Send messages through this node producer
+
+Just need to post to the `/` endpoint, example:
+
+```console
+$ while 1; do d=$(date); curl -is -X POST -H content-type:application/json -d '{"foo": "'${d}'"}' http://localhost:3000/ ; sleep 1;  done
+```
+
+In the console consumer, you will then see messages like:
+
+```console
+...
+{"foo":"Tue Apr 24 10:54:58 BST 2018"}
+{"foo":"Tue Apr 24 10:54:59 BST 2018"}
+{"foo":"Tue Apr 24 10:55:00 BST 2018"}
+{"foo":"Tue Apr 24 10:55:01 BST 2018"}
+{"foo":"Tue Apr 24 10:55:02 BST 2018"}
+{"foo":"Tue Apr 24 10:55:03 BST 2018"}
+{"foo":"Tue Apr 24 10:55:04 BST 2018"}
+{"foo":"Tue Apr 24 10:55:06 BST 2018"}
+...
+```
+
+
+## Docker swarm
+
+There's a script in the machines running the swarm:
+
+```console
+[infra@LON01-TTMI01 ~]$ cat tm8/kafka-node.sh 
+docker service create --name kafka-node \
+  --network services-1 \
+  --replicas 5 \
+  --update-delay 20s \
+  --publish 3000:3000 \
+  --env KAFKA_BROKERS=10.60.222.71:9092 \
+  miaoulafrite/kafka-node
+```
+
+Scaling up and down:
+```console
+$ docker service scale kafka-node=0
+$ docker service scale kafka-node=5
 ```
