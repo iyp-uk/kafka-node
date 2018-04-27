@@ -3,7 +3,7 @@
 Kafka node client. 
 Just passes data being posted into Kafka.
 
-Healthcheck available at `/test` endpoint.
+Healthcheck available at `/ping` endpoint.
 
 ## Docker
 
@@ -98,18 +98,11 @@ In the console consumer, you will then see messages like:
 There's a script in the machines running the swarm:
 
 ```console
-[infra@LON01-TTMI01 ~]$ cat tm8/kafka-node.sh 
-docker service create --name kafka-node \
+$ docker service create --name kafka-node \
   --network services-1 \
   --replicas 5 \
   --update-delay 20s \
   --publish 3000:3000 \
-  --env KAFKA_BROKERS=10.60.222.71:9092 \
+  --env KAFKA_BROKERS=localhost:9092 \
   miaoulafrite/kafka-node
-```
-
-Scaling up and down:
-```console
-$ docker service scale kafka-node=0
-$ docker service scale kafka-node=5
 ```
